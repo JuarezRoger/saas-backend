@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from cotizaciones.views import RegistroSaaSView, EnviarCotizacionView
 
 # Importamos la nueva vista que acabamos de crear
 from cotizaciones.views import RegistroSaaSView 
@@ -31,4 +32,6 @@ urlpatterns = [
     
     # NUEVA RUTA: El Registro de usuarios
     path('api/registro/', RegistroSaaSView.as_view(), name='registro_saas'),
+
+    path('api/cotizaciones/<int:pk>/enviar/', EnviarCotizacionView.as_view(), name='enviar_cotizacion'),
 ]

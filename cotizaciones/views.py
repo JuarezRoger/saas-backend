@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
 from .models import Compania
+from django.core.mail import EmailMessage
+from django.conf import settings
 
 class ClienteViewSet(viewsets.ModelViewSet):
     serializer_class = ClienteSerializer
@@ -79,5 +81,43 @@ class RegistroSaaSView(APIView):
             
             return Response({'mensaje': '¡Bienvenido a AtomSaaS! Cuenta creada.'}, status=status.HTTP_201_CREATED)
         
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class EnviarCotizacionView(APIView):
+    def post(self, request, pk):
+        try:
+            # Buscamos la cotización y aseguramos que pertenezca a la empresa del usuario
+            # (¡Aquí cambiamos "empresa=" por "compania="!)
+            cotizacion = Cotizacion.objects.get(pk=pk, compania=request.user.compania)
+            cliente = cotizacion.cliente
+            
+            # Recibimos el PDF que nos manda React (en formato Base64)
+            pdf_base64 = request.data.get('pdf')
+            if not pdf_base64:
+                return Response({'error': 'No se recibió el archivo PDF.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Limpiamos el texto base64 para que el correo lo entienda
+            import base64
+            formato, imgstr = pdf_base64.split(';base64,') 
+            pdf_data = base64.b64decode(imgstr)
+
+            # Preparamos el correo
+            asunto = f'Cotización de Servicios - {request.user.compania.nombre}'
+            mensaje = f'Hola {cliente.nombre_empresa},\n\nAdjunto encontrarás la cotización solicitada de parte de {request.user.compania.nombre}.\n\nSaludos cordiales.'
+            remitente = settings.EMAIL_HOST_USER
+            destinatario = [cliente.email]
+
+            # Creamos el paquete del correo
+            email = EmailMessage(asunto, mensaje, remitente, destinatario)
+            # Adjuntamos el PDF decodificado
+            email.attach(f'Cotizacion_{cotizacion.codigo}.pdf', pdf_data, 'application/pdf')
+            # ¡Y lo enviamos!
+            email.send()
+
+            return Response({'mensaje': 'Correo enviado exitosamente a ' + cliente.email}, status=status.HTTP_200_OK)
+
+        except Cotizacion.DoesNotExist:
+            return Response({'error': 'Cotización no encontrada o no tienes permiso.'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
