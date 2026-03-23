@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from .models import Compania
 from django.core.mail import EmailMessage
 from django.conf import settings
+from rest_framework import generics
 
 class ClienteViewSet(viewsets.ModelViewSet):
     serializer_class = ClienteSerializer
@@ -121,3 +122,15 @@ class EnviarCotizacionView(APIView):
             return Response({'error': 'Cotización no encontrada o no tienes permiso.'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+
+# ==========================================
+# NUEVA VISTA: Para Editar/Borrar una cotización específica
+# ==========================================
+class CotizacionDetalleView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CotizacionSerializer
+    
+    def get_queryset(self):
+        # Medida de seguridad: que la agencia solo pueda editar sus propias cotizaciones
+        return Cotizacion.objects.filter(compania=self.request.user.compania)

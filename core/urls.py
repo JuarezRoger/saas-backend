@@ -17,21 +17,26 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from cotizaciones.views import RegistroSaaSView, EnviarCotizacionView
+# Modifica tu importación actual para que incluya CotizacionDetalleView
+from cotizaciones.views import RegistroSaaSView, EnviarCotizacionView, CotizacionDetalleView
 
 # Importamos la nueva vista que acabamos de crear
 from cotizaciones.views import RegistroSaaSView 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # 🌟 PASE VIP: Ponemos las rutas específicas ARRIBA para que Django las lea primero
+    path('api/cotizaciones/<int:pk>/enviar/', EnviarCotizacionView.as_view(), name='enviar_cotizacion'),
+    path('api/cotizaciones/<int:pk>/', CotizacionDetalleView.as_view(), name='cotizacion_detalle'),
+
+    # Ahora sí, el resto de las rutas generales
     path('api/', include('cotizaciones.urls')),
     
     # Rutas de Tokens (Login)
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
-    # NUEVA RUTA: El Registro de usuarios
+    # Registro
     path('api/registro/', RegistroSaaSView.as_view(), name='registro_saas'),
-
-    path('api/cotizaciones/<int:pk>/enviar/', EnviarCotizacionView.as_view(), name='enviar_cotizacion'),
 ]

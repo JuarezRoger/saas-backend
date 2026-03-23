@@ -31,7 +31,8 @@ class CotizacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cotizacion
         fields = ['id', 'cliente', 'codigo', 'estado', 'fecha_creacion', 'detalles']
-        read_only_fields = ['compania', 'codigo', 'estado'] # Esto lo llena el sistema
+        # AQUÍ ESTÁ LA MAGIA: Le quitamos 'estado' a la lista de solo lectura
+        read_only_fields = ['compania', 'codigo']
 
     # Sobreescribimos la función de crear para manejar ambos al mismo tiempo
     def create(self, validated_data):
