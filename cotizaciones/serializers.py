@@ -30,7 +30,7 @@ class CotizacionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cotizacion
-        fields = ['id', 'cliente', 'codigo', 'estado', 'fecha_creacion', 'detalles']
+        fields = ['id', 'cliente', 'codigo', 'estado', 'descuento', 'fecha_creacion', 'detalles']
         # AQUÍ ESTÁ LA MAGIA: Le quitamos 'estado' a la lista de solo lectura
         read_only_fields = ['compania', 'codigo']
 
@@ -51,3 +51,22 @@ class CotizacionSerializer(serializers.ModelSerializer):
             DetalleCotizacion.objects.create(cotizacion=cotizacion, **detalle)
         
         return cotizacion
+    # ==========================================
+    # Función para EDITAR la cotización y sus servicios
+    # ==========================================
+    def update(self, instance, validated_data):
+        # Sacamos los servicios de la petición
+        detalles_data = validated_data.pop('detalles', None)
+        
+        # Actualizamos los datos principales (cliente, estado, etc.)
+        instance.cliente_id = validated_data.get('cliente', instance.cliente_id)
+        instance.estado = validated_data.get('estado', instance.estado)
+        instance.save()
+
+        # Si el usuario modificó los servicios, borramos los viejos y guardamos los nuevos
+        if detalles_data is not None:
+            instance.detalles.all().delete()
+            for detalle in detalles_data:
+                instance.detalles.create(**detalle)
+                
+        return instance

@@ -10,6 +10,10 @@ from .models import Compania
 from django.core.mail import EmailMessage
 from django.conf import settings
 from rest_framework import generics
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
 
 class ClienteViewSet(viewsets.ModelViewSet):
     serializer_class = ClienteSerializer
@@ -134,3 +138,40 @@ class CotizacionDetalleView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         # Medida de seguridad: que la agencia solo pueda editar sus propias cotizaciones
         return Cotizacion.objects.filter(compania=self.request.user.compania)
+    
+# ==========================================
+# VISTAS PARA EL SÚPER DIRECTORIO (Editar/Borrar)
+# ==========================================
+class ClienteDetalleView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ClienteSerializer
+    def get_queryset(self):
+        return Cliente.objects.filter(compania=self.request.user.compania)
+
+class ServicioDetalleView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ServicioSerializer
+    def get_queryset(self):
+        return Servicio.objects.filter(compania=self.request.user.compania)
+    
+# ==========================================
+# SEGURIDAD Y PERFIL DE USUARIO
+# ==========================================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cambiar_password(request):
+    user = request.user
+    password_actual = request.data.get('password_actual')
+    password_nueva = request.data.get('password_nueva')
+
+    # 1. Verificamos que no envíen campos vacíos
+    if not password_actual or not password_nueva:
+        return Response({'error': 'Debes enviar la contraseña actual y la nueva.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 2. Verificamos que la contraseña actual sea la correcta
+    if not user.check_password(password_actual):
+        return Response({'error': 'La contraseña actual es incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 3. Si todo está bien, encriptamos y guardamos la nueva
+    user.set_password(password_nueva)
+    user.save()
+    
+    return Response({'mensaje': '¡Contraseña actualizada con éxito!'}, status=status.HTTP_200_OK)

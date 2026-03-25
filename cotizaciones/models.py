@@ -37,8 +37,9 @@ class Cotizacion(models.Model):
     compania = models.ForeignKey(Compania, on_delete=models.CASCADE)
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     codigo = models.CharField(max_length=20)
-    fecha_creacion = models.DateTimeField(auto_now_add=True) # Se llena sola con la fecha actual
     estado = models.CharField(max_length=20, default='Borrador')
+    descuento = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.codigo} - {self.cliente.nombre_empresa}"
@@ -52,3 +53,5 @@ class DetalleCotizacion(models.Model):
 
     def __str__(self):
         return f"{self.cantidad}x {self.servicio.nombre}"
+    
+

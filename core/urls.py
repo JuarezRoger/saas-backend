@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 # Modifica tu importación actual para que incluya CotizacionDetalleView
-from cotizaciones.views import RegistroSaaSView, EnviarCotizacionView, CotizacionDetalleView
+from cotizaciones.views import RegistroSaaSView, EnviarCotizacionView, CotizacionDetalleView, ClienteDetalleView, ServicioDetalleView
 
 # Importamos la nueva vista que acabamos de crear
 from cotizaciones.views import RegistroSaaSView 
@@ -29,6 +29,8 @@ urlpatterns = [
     # 🌟 PASE VIP: Ponemos las rutas específicas ARRIBA para que Django las lea primero
     path('api/cotizaciones/<int:pk>/enviar/', EnviarCotizacionView.as_view(), name='enviar_cotizacion'),
     path('api/cotizaciones/<int:pk>/', CotizacionDetalleView.as_view(), name='cotizacion_detalle'),
+    path('api/clientes/<int:pk>/', ClienteDetalleView.as_view(), name='cliente_detalle'),
+    path('api/servicios/<int:pk>/', ServicioDetalleView.as_view(), name='servicio_detalle'),
 
     # Ahora sí, el resto de las rutas generales
     path('api/', include('cotizaciones.urls')),
@@ -39,4 +41,6 @@ urlpatterns = [
     
     # Registro
     path('api/registro/', RegistroSaaSView.as_view(), name='registro_saas'),
+
+
 ]

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -138,7 +139,7 @@ REST_FRAMEWORK = {
 }
 
 
-# Al final del archivo settings.py
+# --- Configuración de CORS para permitir que React hable con Django ---
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -155,5 +156,16 @@ EMAIL_USE_TLS = True
 # Pon aquí tu correo de Gmail
 EMAIL_HOST_USER = 'roger.juarez.rdjjm@gmail.com' 
 # Pon aquí la CONTRASEÑA DE APLICACIÓN de 16 letras que te dio Google (Sin espacios)
-# EMAIL_HOST_PASSWORD = 'cytymymfwccpsfny'
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
+EMAIL_HOST_PASSWORD = 'cytymymfwccpsfny'
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
+
+# Importa timedelta hasta arriba del todo en tu archivo settings.py:
+# from datetime import timedelta
+
+# Y pega esto hasta el fondo del archivo:
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
